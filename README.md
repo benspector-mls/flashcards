@@ -53,7 +53,7 @@ I then stored the resulting data in a `.json` file called `db/flashcards.json` (
 ```
 
 ChatGPT did a great job of giving me data in a format that I could easily use. 
-* The data was in an Array which means I can render a "card" for each object.
+* The data was in an Array which means I can render a "card" for each object using `.map()` in a `ul`
 * Each flashcard object had:
   * an `id` which I can use for list item `key` props and much more
   * a `question` and an `answer` which will be useful for when I want to toggle which text I show to the user.
@@ -62,7 +62,7 @@ At this point I'm starting to think about my component structure.
 
 ## Component Structure
 
-To make the MVP, the app can be quite simple. Just render a `ul` with an `li` "card" for each flashcard object. So I basically just need my `App` component and `Flashcard` component. 
+To make the MVP, the app can be quite simple. Just render a `ul` with an `li` "card" for each flashcard object. So I basically just need my `App` component and `Flashcard` component. I'll then map each object in the dataset to a `<Flashcard />`.
 
 For the MVP, here is what I came up with:
 
