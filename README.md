@@ -5,9 +5,12 @@
 I want to build a flashcard app. 
 
 ### MVP
+
 I'm imagining a dataset of questions/answers and I can display each question as a "card". When I click on the card, it will "flip" and show me the answer.
 
 ### Stretch features
+
+I don't have as clear of a picture of how I will implement these details so when planning, I'll list these features as user stories:
 
 * Users can keep score
 * There is a form so that users can add new flashcards
