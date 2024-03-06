@@ -83,7 +83,7 @@ Using the JSON file we created above, we can create a mock API. To set it up we 
 
 ![](./images/split-terminal.gif)
 
-3. Now, you will have a RESTful API that you can access via the URL http://localhost:4000/flashcards (try it out!)
+3. Now, you will have an API that you can access via the URL http://localhost:4000/flashcards (try it out!)
 
 `json-server` only works if the `.json` file is in the proper format. The JSON file needs to store a JSON object with a top-level property that names the resource to be fetched. 
 
