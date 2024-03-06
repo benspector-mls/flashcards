@@ -50,5 +50,13 @@
       "question": "What is a React component lifecycle?",
       "answer": "The React component lifecycle describes the phases a component goes through from birth to death."
     }
-  ]
+  ],
+  "friends": [
+    "ben",
+    "gonzalo",
+    "carmen"
+  ],
+  "message": {
+    "data": "hello world"
+  }
 }

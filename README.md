@@ -17,13 +17,23 @@ I'm imagining a dataset of questions/answers and I can display each question as 
 
 First, create the app using Vite: `npm create vite@latest` (you may be prompted to install the latest version of vite)
 
-Then, empty out the starter code from `App.jsx`.
+```sh
+npm create vite@latest
+# Name it flashcards
+# Select React
+# Select JavaScript
+
+cd flashcards
+npm i
+
+# Delete the contents of App.jsx
+```
 
 ## Data
 
 I know that I'll need some flashcard data to render.
 
-To get myself started, I used ChatGPT to give me a dataset of flashcards rather than come up with my own set of questions. I asked for the data in JSON format so that I could easily import it into my app. I was also thinking down the line that it could be useful to use the dataset with [JSON Server](https://www.npmjs.com/package/json-server) if I wanted to emulate a full-stack app.
+To get myself started, I used ChatGPT to give me a dataset of flashcards rather than come up with my own set of questions. I asked for the data in JSON format so that I could easily import it into my app.
 
 ![I asked chat gpt to give me a dataset of flashcard to study react](./images/chatgpt-data-prompt.png)
 
@@ -58,7 +68,93 @@ ChatGPT did a great job of giving me data in a format that I could easily use.
   * an `id` which I can use for list item `key` props and much more
   * a `question` and an `answer` which will be useful for when I want to toggle which text I show to the user.
 
-At this point I'm starting to think about my component structure.
+## JSON Server
+
+JSON Server is a tool to we use to spin up a mock API. It is a great alternative when you don't have the time to build out a full Express API. It does have its limitation in that it cannot support a robust relationships database. Read the [JSON Server documentation](https://github.com/typicode/json-server#getting-started) for more information.
+
+Using the JSON file we created above, we can create a mock API. To set it up we can:
+
+0. Run `npm install -g json-server` to install json server globally
+1. Create the `.json` file. We did this already: `db/flashcards.json`
+2. Split our terminal and run `json-server --watch db/flashcards.json --port 4000` to start a mock back-end server on port 4000. 
+
+![](./images/split-terminal.gif)
+
+3. Now, you will have a RESTful API that you can access via the URL http://localhost:4000/flashcards (try it out!)
+
+`json-server` only works if the `.json` file is in the proper format. The JSON file needs to store a JSON object with a top-level property that names the resource to be fetched. 
+
+Something like (feel free to copy this):
+
+```json
+{
+  "flashcards": [
+    {
+      "id": 1,
+      "question": "What is React?",
+      "answer": "React is a JavaScript library for building user interfaces."
+    },
+    {
+      "id": 2,
+      "question": "What is JSX?",
+      "answer": "JSX is a syntax extension for JavaScript used with React to describe what the UI should look like."
+    },
+    {
+      "id": 3,
+      "question": "What are components in React?",
+      "answer": "Components are the building blocks of a React application. They encapsulate logic and UI."
+    }
+  ]
+}
+```
+
+In this example, `"flashcards"` is the top-level property which makes http://localhost:4000/flashcards a valid endpoint. When we send a `GET` request to that endpoint, we'll get back the value of `"flashcards"`.
+
+**Q: What would be the endpoint(s) created if this were our JSON file?**
+
+```json
+{
+  "friends": [
+    "ben",
+    "gonzalo",
+    "carmen"
+  ],
+  "message": {
+    "data": "hello world"
+  }
+}
+```
+
+**<details><summary style="color: purple">Answer</summary>**
+> http://localhost:4000/friends and http://localhost:4000/messages
+</details><br>
+
+**Q: How would I make a http://localhost:4000/flashcards/react or http://localhost:4000/flashcards/fetch endpoint?**
+
+**<details><summary style="color: purple">Answer</summary>**
+```json
+{
+  "flashcards": {
+    "react": [
+      {
+        "id": 1,
+        "question": "What is React?",
+        "answer": "React is a JavaScript library for building user interfaces."
+      },
+      ...
+    ],
+    "fetch": [
+      {
+        "id": 1,
+        "question": "What does fetch do?",
+        "answer": "fetch sends an HTTP request to the provided url."
+      },
+      ...
+    ]
+  }
+}
+```
+</details><br>
 
 ## Component Structure
 
@@ -68,8 +164,9 @@ For the MVP, here is what I came up with:
 
 ```jsx
 import { useState } from 'react'
-import flashcardData from '../db/flashcards.json'
 import './App.css'
+import fetchData from './utils/fetchData'
+import { useEffect } from 'react'
 
 const Flashcard = ({ flashcard }) => {
   const [text, setText] = useState(flashcard.question)
@@ -84,7 +181,7 @@ const Flashcard = ({ flashcard }) => {
       setBackgroundColor('lightblue');
     }
   }
-  
+
   const style = { background: backgroundColor }
 
   return (
@@ -95,12 +192,26 @@ const Flashcard = ({ flashcard }) => {
 }
 
 function App() {
+  const [flashcards, setFlashcards] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const doFetch = async () => {
+      const [data, error] = await fetchData('http://localhost:4000/flashcards');
+      if (data) setFlashcards(data);
+      if (error) setError(error);
+    };
+    doFetch();
+  }, []);
+
+  if (error) return <p>{error.message}</p>
+
   return (
     <>
       <h1>Flash Cards</h1>
       <ul>
         {
-          flashcardData.flashcards.map((flashcard) => <Flashcard key={flashcard.id} flashcard={flashcard} />)
+          flashcards.map((flashcard) => <Flashcard key={flashcard.id} flashcard={flashcard} />)
         }
       </ul>
     </>
@@ -113,6 +224,9 @@ export default App
 Let's break it down:
 * The `Flashcard` component takes in a `flashcard` object as a prop.
 * It also keeps track of two state values: `text` and `backgroundColor` which can be toggled between showing the question and showing the answer
+* The `App` keeps track of `flashcards` and `error` state. 
+* We use `useEffect` to fetch the flashcard data from our json-server when the component renders.
+  * Then we either invoke `setFlashcards` or `setError` depending on the returned data.
 * The `App` component maps over the flashcard data, creating a `Flashcard` component for each `flashcard` object, using the `flashcard` object's `id` as the `key` and passing along the `flashcard` object as a prop.
 * Since I kept the starting CSS styles that came with the Vite project, it actually looks pretty good.
 
