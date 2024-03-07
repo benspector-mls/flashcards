@@ -40,7 +40,7 @@ To get myself started, I used ChatGPT to give me a dataset of flashcards rather 
 
 ![I asked chat gpt to give me a dataset of flashcard to study react](./images/chatgpt-data-prompt.png)
 
-I then stored the resulting data in a `.json` file called `db/flashcards.json` (I made a `db` folder since this is sort of like my "database").
+I then stored the resulting data in a `.json` file called `src/db/flashcards.json` (I made a `src/db` folder since this is sort of like my "database").
 
 ```json
 {
@@ -73,17 +73,19 @@ ChatGPT did a great job of giving me data in a format that I could easily use.
 
 ## JSON Server
 
-JSON Server is a tool to we use to spin up a mock API. It is a great alternative when you don't have the time to build out a full Express API. It does have its limitation in that it cannot support a robust relationships database. Read the [JSON Server documentation](https://github.com/typicode/json-server#getting-started) for more information.
+JSON Server is a tool to we use to spin up a mock API. It basically lets us turn any properly formatted `.json` file into a full API running on `localhost`.
+
+It is a great alternative when you don't have the time to build out a full Express API. It does have its limitation in that it cannot support a robust relationships database. Read the [JSON Server documentation](https://github.com/typicode/json-server#getting-started) for more information.
 
 Using the JSON file we created above, we can create a mock API. To set it up we can:
 
-0. Run `npm install -g json-server` to install json server globally
-1. Create the `.json` file. We did this already: `db/flashcards.json`
-2. Split our terminal and run `json-server --watch db/flashcards.json --port 4000` to start a mock back-end server on port 4000. 
+1. Run `npm install -g json-server` to install json server globally
+2. Create the `.json` file. We did this already: `db/flashcards.json`
+3. Split our terminal and run `json-server --watch db/flashcards.json --port 4000` to start a mock back-end server on port 4000. 
 
 ![](./images/split-terminal.gif)
 
-1. Now, you will have an API that you can access via the URL http://localhost:4000/flashcards (try visiting that URL in your browser!)
+4. Now, you will have an API that you can access via the URL http://localhost:4000/flashcards (try visiting that URL in your browser!)
 
 `json-server` only works if the `.json` file is in the proper format. The JSON file needs to store a JSON object with a top-level property that names the resource to be fetched. 
 
@@ -165,11 +167,12 @@ To make the MVP, the app can be quite simple. Just render a `ul` with an `li` "c
 
 For the MVP, here is what I came up with:
 
+### Flashcard Component
+
+The `Flashcard` component should be focused solely on rendering a single `flashcard` object. It can maintain its own state to toggle back and forth between showing the question and the answer.
+
 ```jsx
 import { useState } from 'react'
-import './App.css'
-import fetchData from './utils/fetchData'
-import { useEffect } from 'react'
 
 const Flashcard = ({ flashcard }) => {
   const [text, setText] = useState(flashcard.question)
@@ -185,6 +188,7 @@ const Flashcard = ({ flashcard }) => {
     }
   }
 
+  // set the style dynamically using the backgroundColor state
   const style = { background: backgroundColor }
 
   return (
@@ -192,6 +196,25 @@ const Flashcard = ({ flashcard }) => {
       <p>{text}</p>
     </li>
   )
+}
+```
+* The `Flashcard` component takes in a `flashcard` object as a prop.
+* It also keeps track of two state values: `text` and `backgroundColor` which can be toggled between showing the question and showing the answer
+* We provide a `style` prop to dynamically set the style of the component using the `backgroundColor` state
+* We render the flashcard as an `li` with an `onClick` prop, a `style` prop, and with the `text` state rendered.
+
+### App Component
+
+The App component needs to fetch the set of flashcards from the json-server URL http://localhost:4000/flashcards when the component first loads and then use that data to render a list of flashcards.
+
+```jsx
+import './App.css'
+import { useState, useEffect } from 'react'
+import fetchData from './utils/fetchData'
+// Check out the helper function ^
+
+const Flashcard = () => {
+  // flashcard component
 }
 
 function App() {
@@ -205,9 +228,10 @@ function App() {
       if (error) setError(error);
     };
     doFetch();
-  }, []);
+  }, []); // run the effect only once
 
-  if (error) return <p>{error.message}</p>
+  // Conditionally render the error message 
+  if (error) return <p>{error.message}. Refresh to try again.</p>
 
   return (
     <>
@@ -225,15 +249,15 @@ export default App
 ```
 
 Let's break it down:
-* The `Flashcard` component takes in a `flashcard` object as a prop.
-* It also keeps track of two state values: `text` and `backgroundColor` which can be toggled between showing the question and showing the answer
 * The `App` keeps track of `flashcards` and `error` state. 
-* We use `useEffect` to fetch the flashcard data from our json-server when the component renders.
+* We use `useEffect` to fetch the flashcard data from our json-server when the component first renders (and only that one time).
   * Then we either invoke `setFlashcards` or `setError` depending on the returned data.
-* The `App` component maps over the flashcard data, creating a `Flashcard` component for each `flashcard` object, using the `flashcard` object's `id` as the `key` and passing along the `flashcard` object as a prop.
-* Since I kept the starting CSS styles that came with the Vite project, it actually looks pretty good.
+* The `App` component maps over the `flashcards` data, creating a `Flashcard` component for each `flashcard` object.
+* When rendering a list of components, we use the `flashcard` object's `id` as the `key` and pass along the `flashcard` object as a prop.
+* Since I kept the starting CSS styles that came with the Vite project, it actually looks okay.
 
 ## Next Steps
 
 * Organize my components into separate files
 * Build out stretch features
+* Add better styling
