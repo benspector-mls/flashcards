@@ -81,7 +81,7 @@ Using the JSON file we created above, we can create a mock API. To set it up we 
 
 1. Run `npm install -g json-server` to install json server globally
 2. Create the `.json` file. We did this already: `db/flashcards.json`
-3. Split our terminal and run `json-server --watch db/flashcards.json --port 4000` to start a mock back-end server on port 4000. 
+3. From the root of your vite project, split your terminal and run `json-server --watch db/flashcards.json --port 4000` to start a mock back-end server on port 4000. 
 
 ![](./images/split-terminal.gif)
 
